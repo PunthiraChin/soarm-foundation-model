@@ -1,88 +1,36 @@
-# Architecture v0.1
+# SOARM-ASTRA control contract
 
-## Design decision
+The offline entry point connects VoiceIngress, ControlLoop, FixturePlanner, independently clocked cameras, an idealised arm and a numerical IK fixture in one process. The intended live components are OpenAI GPT Live for voice delegation and OpenAI Astra for planning and verification. Microphone transport, network inference and physical drivers have not been exercised.
 
-Use GPT-Live **client delegation** for speech, and a local orchestrator to call Astra via Responses with strict structured output. The app owns task IDs, permissions, fresh snapshot capture, cancellation, execution and feedback. GPT-Live can keep talking while the worker runs, but its conversation interruption is not itself robot cancellation. Speech stop/correction is a convenience; a local stop mechanism and supervised, physically clear workspace are required for hardware.
+## Ownership and sequencing
 
-```mermaid
-flowchart LR
-  U[Thai voice] --> L[GPT-Live voice session]
-  L -->|Client delegation: start, status, cancel| T[Local task runner]
-  B[Overhead + wrist + joint readback] --> O[Timestamped observation]
-  O --> T
-  T <-->|Text + paired stills / typed proposal| A[GPT-6.2 Astra via Responses]
-  T --> G[Ground target and validate]
-  G --> P[One bounded skill at a time]
-  P --> I[Local trajectory, IK and guards]
-  I --> R[LeRobot SO-101 Follower]
-  R --> B
-  V[Outcome verifier] --> T
-  O --> V
-  T -->|Verified status| L
-  S[Local stop / watchdog] --> I
-```
+1. A voice callback delivers a source-ordered typed goal, override or stop on the loop owner thread. Audio-stream interruption alone has no motor effect. An independent local stop can call `intent(Intent("stop"))` directly.
+2. The loop assigns a revision, captures independently timestamped top, wrist and measured five-joint/gripper state, then submits one planner request. A real planner transport must enqueue work without blocking the loop and return responses via `poll`. Replies are fenced by both revision and observation ID. A late or stale response cannot start a slice.
+3. Astra owns the interpreted goal, subgoals, task-level success condition and decisions. The fixture chooses target geometry from each new observation. The loop retains the mission for the revision, reports the tracked phase and reason for rejection, and enforces local evidence and motion guards. A new revision starts a new mission.
+4. Each motion reply specifies a phase, 2–4 Cartesian points, frame `robot_base`, XYZ in metres and 10–20 samples. The phase labels govern gripper/checkpoint constraints. Coordinates and the route come from the planner. Unknown fields, invalid counts, nonfinite coordinates and unsupported units are rejected. In this fixture the approach slice closes the jaws at its tracked endpoint. Release requires a stationary path at a verified support.
+5. The executor interpolates from measured FK through every corner and solves IK for every sample. The first seed is the measured arm state and each solution seeds the following solve. It checks workspace, joint bounds, step sizes and FK residual for the entire slice before any write, including pre-open. The local open command holds measured q and waits for measured calibrated maximum opening before approach or regrasp. The path runs at a nominal 50 ms interval, 0.5–1 s for the samples alone. Observation, pre-opening, gripper actions, tracking and planner time add to the total.
+6. Five arm positions in radians and a separate gripper channel are written per tick. The next target waits for measured readback. The loop checks again after grasp, after lift, at every carry boundary, before release and after placing. Paired visual evidence distinguishes empty, held, uncertain and placed. Absence of evidence requests another view. Holding a different object after an override leads to a question with grip maintained.
+7. Stop increments revision, fences replies, discards remaining samples and calls a local driver hold that replaces its active target. ACK and stable encoder measurements are separate transitions. The fixture requires successive stationary readings spanning 100 simulated ms after ACK. The new task requires all sensor timestamps strictly later than settling. The trace records intent, last old write, hold, ACK, settled and first new write. Missing confirmation latches a fault.
 
-## Interfaces
-
-| Component | Responsibility |
-|---|---|
-| voice_gateway | Browser microphone/speaker via GPT-Live. Convert delegated intent to start/status/cancel requests for the local runner, not motor calls. Preserve user language and report actual status. |
-| observation | Paired camera frames with per-frame monotonic timestamps, measured joints, locally computed tip pose, calibration revision and scene/object IDs. Reject stale frames or excessive skew; capture a fresh pair after a motion checkpoint. |
-| planner | Provide localized candidate IDs, two labelled still images, goal and last outcome to GPT-6.2 Astra. Parse strict schema and validate locally. Output a short subgoal plan, next skill/target and intended visual outcome; may ask, replan, or propose completion. No raw actuator tool or full trajectory in v0. |
-| grounding | Stable overhead-to-base calibration and a measured tabletop plane, with a small local fiducial- or color-based tracker for v0. Wrist view checks close-up alignment/closure where visible. No guessed 3D depth from uncalibrated pixels. Workspace and objects allowlisted; on low confidence ask or stop. |
-| executor | Read validated atomic requests only. Assign local approach / grasp / lift / place waypoints and orientations, not arbitrary 6D poses from cloud. A five-joint manipulation chain plus gripper cannot realize arbitrary position and orientation simultaneously. Use the calibrated SO-101 URDF, joint readback as IK seed, and an appropriate constrained orientation. LeRobot's Placo-based RobotKinematics and InverseKinematicsEEToJoints are candidate adapters; the SO101Follower handles observation and joint commands. Pin a LeRobot release and verify its API/units before writing integration. |
-| guard / supervisor | Dry-run and replay default; optional later supervised hardware arm-enable. One in-flight skill. Check full interpolated path, workspace/keep-outs, table clearance, collisions detectable by the validated geometry, joint bounds, increments and tracking error. Timeout, disconnect, unsafe target or invalid telemetry: stop/hold as appropriate to the tested hardware and latch until operator re-arms. Never assume torque-off is a safe stop for an unsupported arm. |
-| verifier | Distinguish physical motion completion from task success. Joint tracking can confirm arrival, not that an object was grasped. Check post-lift carry or final placement using fresh frames and local object tracking; report unknown if obscured. Astra can inspect evidence and ask for a better view, but cannot self-certify success. |
-
-Example planner response, **not** a hardware command:
+For example, two planner waypoints in a carry slice can be expressed as:
 
 ```json
-{
-  "task_id": "trial-007",
-  "observation_id": "obs-014",
-  "decision": "execute",
-  "subgoals": ["move the referenced object to its destination"],
-  "next_skill": "pick",
-  "object_id": "obj-blue-01",
-  "destination_id": null,
-  "expected_outcome": "object is visibly above the tabletop and remains with gripper"
-}
+{"frame":"robot_base","xyz_unit":"m","phase":"carry","samples":12,"waypoints":[[0.19,0.065,0.10],[0.21,0.015,0.10]]}
 ```
 
-Other decisions: ask, report_blocked, propose_done. The runner independently validates expected result and plan applicability. Errors are typed: stale observation, invalid grounding, IK/path rejected, tracking timeout, grasp not verified, place not verified, canceled, stopped. A JSON parse success alone is not execution authorization.
+The complete response also has revision, obs_id, decision, reason and mission. See `soarm_astra/contracts.py` for the validated wire contract. Decisions include next, retry, replan, review, ask and done. In the fixture two bounded recovery attempts, a request cap and a task deadline prevent unbounded loops. The 200 ms age and 40 ms inter-source skew budgets are test settings. A live planner with longer latency will need observation revalidation and measured budgets.
 
-## Task lifecycle and retry
+## Substitution and fidelity
 
-IDLE → OBSERVE → PLAN → VALIDATE → EXECUTE → VERIFY → next skill / DONE / REPLAN. Report observed failure and fresh evidence upstream. For v0, per task: at most two **safe** replans after the first attempt, with a configurable total deadline (illustrative starting value 60 s) and request budget. Stop on unchanged state/repeated identical failure, unsafe reference, deadline or ambiguity; safety fault never auto-retries. On exhaustion return WAITING_FOR_USER and keep listening without moving. Cancel/correct invalidates the task generation, drops late responses and locks out queued motion; a new command starts only after stop is acknowledged. Local stop must not depend on cloud response, speech understanding, or the planner.
+| Interface | Exercised path | Work for a live system |
+|---|---|---|
+| Voice and planner | Typed callback and deterministic Thai fixture planner | Connect GPT Live audio and bridge client delegation. Supply Astra labelled camera stills, measured state, mission and previous outcome. Validate its response with the same local parser. |
+| Observation | Two independently rendered indexed images, measured state and fixture FK. An orthographic fixture mapping localises a visible cube and tray. | Record capture and encoder times in a common clock domain, calibrate both cameras, extrinsics and tabletop, validate object localisation, support height and carry evidence. Implement real-image grounding for the predicates in vision.py. A recorded Cameras implementation can drive replay, but a fixed recording cannot react to a changed trajectory. |
+| IK | Idealised two-link position model, yaw, compensating wrist and roll. Seed chooses elbow branch. | Supply commissioned SO-101 URDF, joint order, tip frame, orientation constraints, calibrated limits, collision and tracking checks. PlacoIK only adapts units/target format for a position-only scaffold. |
+| Driver | Rate-limited synthetic joint/gripper readback. Explicit mock hold and delayed ACK. | Validate serial readback rates, joint/gripper units, timestamps, tracking, slip, stop/settle, watchdog and a supervised physical stop. The fixture thresholds and jaw values are not hardware calibration. |
 
-## Layout to implement, not modules already built
+The packet shim in `lerobot_ports.py` expects a previously configured degree-mode follower. It maps one tick to `send_action`, which can clip commands, and has a separate encoder read. There is no hardware entry point in the demo. A production adapter must also provide independently timestamped camera capture and a commissioned hold/ACK implementation. Official SOFollower reads encoders and then collects the cameras sequentially. A returned dictionary or action is insufficient evidence of synchronized exposure, achieved rate or motion completion. [LeRobot SOFollower source](https://github.com/huggingface/lerobot/blob/main/src/lerobot/robots/so_follower/so_follower.py)
 
-```text
-src/soarm_astra/
-  voice/                 # browser/backend GPT-Live gateway, no motor privileges
-  planning/              # Astra Responses + schema
-  observation/           # paired frames, state, grounding
-  runtime/               # task IDs, async loop, budget, cancellation
-  robot/                 # local skills, kinematics/motion, guards, adapters
-  verification/          # grounded task predicates
-evals/                   # preregistered held-out suite + replay fixtures
-tests/                   # replay, stale reply, stop, invalid paths, fake hardware
-```
+LeRobot RobotKinematics accepts a URDF, joint order and tip frame, takes joint seeds in degrees and returns degrees. The scaffold converts radians explicitly; a URDF/Placo solve has not been run here. Verify and pin the installed LeRobot revision before commissioning. [RobotKinematics source](https://github.com/huggingface/lerobot/blob/main/src/lerobot/model/kinematics.py) · [Official action representations](https://huggingface.co/docs/lerobot/action_representations)
 
-## Milestones
-
-1. **Replay:** text command + recorded/synthetic frame pairs + fake executor. Verify schema, state, retry cap, no false success, stop/cancel and stale response rejection. Log model ID, prompt version, time, usage and outcomes. Try more model reasoning on offline replay, not continuous polling or motor cadence.
-2. **Voice with no motion:** live voice → text intent → planner → dry-run summary. Test Thai commands, variations, status and interruption. Keep keys server-side; do not commit credentials or raw recordings.
-3. **Motor-disabled observation, then supervised primitive:** verify camera labels, pose calibration, joint mapping/readback, safe-stop behavior and workspace. Then operator-authorized small motions and one light-object pick/place test. Never auto-arm.
-4. **Held-out demo:** run the preregistered trials, report successes and assistance, distinguish first-attempt and recovered successes.
-
-## Fable baseline
-
-The supplied friend artifact for `claude-control-arm` describes typed task, top + wrist JPEGs, measured joints, Fable tool calls (`look`, Cartesian waypoint moves, or raw-joint fallback), local LeRobot/IK and refreshed views after tools. It reports an actual Claude API call and an offline IK check, not a verified real-arm end-to-end run. Preserve the look–move–look loop and separation of reasoning from IK. Improve the termination criterion (silence does not equal success), remove raw-joint fallback, enforce local trajectory/speed safeguards and stop, and make retries and evidence observable. Fable is a design reference, not an API dependency.
-
-## Sources
-
-- [OpenAI GPT-Live and delegation](https://developers.openai.com/api/docs/guides/live)
-- [GPT-6.2 Astra API model](https://developers.openai.com/api/docs/models/gpt-6.2-astra)
-- [LeRobot action representations / SO-101 IK](https://huggingface.co/docs/lerobot/action_representations)
-- [LeRobot phone teleop IK example](https://huggingface.co/docs/lerobot/main/en/phone_teleop)
+The earlier design and fixed-skill baseline are preserved in Git at `d0c6388`.
