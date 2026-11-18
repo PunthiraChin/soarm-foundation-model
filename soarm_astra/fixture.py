@@ -1,6 +1,6 @@
 """Action-dependent toy world. Camera pixels are rendered on separate simulated clocks."""
 from math import dist
-from .contracts import Encoder, Frame, COLORS, TRAY, OCCLUDED
+from .contracts import Encoder, Frame, COLORS, TRAY, SECOND_TRAY, OCCLUDED
 from .motion import FixtureIK
 
 
@@ -19,6 +19,7 @@ class Plant:
         self.target = self.q, self.grip
         self.cubes = [["blue", (.19, .065)], ["red", (.16, -.035)]]
         self.tray_xy = (.24, -.07)
+        self.second_tray_xy = None
         self.held = None
         self.misses = self.misplaces = 0
         self.frozen = False
@@ -86,10 +87,12 @@ class CameraPair:
             pixels = bytearray(w*73)
             def index(xy):
                 return round(xy[0]/.005) + w*(round(xy[1]/.005)+36)
-            center = index(plant.tray_xy)
-            for dy in range(-4, 5):
-                for dx in range(-4, 5):
-                    pixels[center + dy*w + dx] = TRAY
+            for xy, marker in ((plant.tray_xy, TRAY), (plant.second_tray_xy, SECOND_TRAY)):
+                if xy is not None:
+                    center = index(xy)
+                    for dy in range(-4, 5):
+                        for dx in range(-4, 5):
+                            pixels[center + dy*w + dx] = marker
             for color, xy in plant.cubes:
                 pixels[index(xy)] = COLORS[color]
         else:

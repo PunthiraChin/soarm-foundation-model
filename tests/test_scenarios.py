@@ -200,3 +200,25 @@ class Scenarios(unittest.TestCase):
         self.assertTrue(r.events("settled"))
         self.assertFalse(any(e["revision"]==2 for e in r.events("write")))
         self.assertEqual(r.b.plant.grip, r.b.plant.closed)
+
+    def test_two_trays_clarify_on_same_revision_before_first_write(self):
+        from soarm_astra.voice import VoiceIngress
+        for answer in ("ถาดซ้าย", "ถาดขวา"):
+            with self.subTest(answer=answer):
+                r = Run()
+                r.b.plant.second_tray_xy = (.14, -.06)
+                voice = VoiceIngress(r.c)
+                voice.deliver(1, {"kind":"goal", "text":BLUE})
+                self.assertEqual(r.finish(), "ask")
+                self.assertEqual(r.reasons(), ["ถาดซ้ายหรือขวาคะ"])
+                revision = r.c.rev
+                self.assertFalse(r.b.plant.writes)
+                voice.deliver(2, {"kind":"goal", "revision":revision+1, "text":answer})
+                self.assertEqual(r.c.state, "ask")
+                voice.deliver(3, {"kind":"goal", "revision":revision, "text":answer})
+                self.assertEqual(r.finish(), "done")
+                self.assertEqual(r.c.rev, revision)
+                self.assertGreater(min(r.p.requests[1].observation.stamps),
+                                   max(r.p.requests[0].observation.stamps))
+                expected = r.b.plant.second_tray_xy if answer=="ถาดซ้าย" else r.b.plant.tray_xy
+                self.assertLess(dist(objects(r.p.requests[-1].observation,"blue")[0], expected), .005)

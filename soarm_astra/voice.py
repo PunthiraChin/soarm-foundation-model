@@ -12,7 +12,13 @@ class VoiceIngress:
         if type(sequence) is not int or sequence < 0 or not isinstance(payload, dict):
             raise ValueError("invalid voice event")
         kind = payload.get("kind")
-        if kind == "stop" and set(payload) == {"kind"}:
+        clarification = kind == "goal" and set(payload) == {"kind", "text", "revision"}
+        if clarification:
+            if (type(payload["revision"]) is not int or not isinstance(payload["text"], str)
+                    or not payload["text"].strip()):
+                raise ValueError("invalid clarification")
+            intent = Intent("goal", payload["text"])
+        elif kind == "stop" and set(payload) == {"kind"}:
             intent = Intent("stop")
         elif (kind in ("goal", "override") and set(payload) == {"kind", "text"}
               and isinstance(payload["text"], str) and payload["text"].strip()):
@@ -23,4 +29,7 @@ class VoiceIngress:
             self.loop.event("old_voice_event", sequence=sequence)
             return
         self.sequence = sequence
-        self.loop.intent(intent)
+        if clarification:
+            self.loop.clarify(payload["revision"], intent.text)
+        else:
+            self.loop.intent(intent)

@@ -35,7 +35,14 @@ class FixturePlanner:
             targets = [color for color, word in (("blue", "ฟ้า"), ("red", "แดง")) if word in req.command]
             if len(targets) != 1 or "ถาด" not in req.command:
                 return reply("ask", "ต้องการหยิบก้อนสีอะไรไปวางที่ไหนคะ")
-            mission = dict(goal=req.command, target=targets[0], destination="tray",
+            boxes = [(box[0], name) for name in ("tray", "tray_b")
+                     if (box := tray(snap, name)) is not None]
+            if not boxes:
+                return reply("ask", "ยังมองไม่เห็นถาดค่ะ")
+            if len(boxes) == 2 and ("ซ้าย" in req.command) == ("ขวา" in req.command):
+                return reply("ask", "ถาดซ้ายหรือขวาคะ")
+            destination = (max(boxes) if "ขวา" in req.command else min(boxes))[1]
+            mission = dict(goal=req.command, target=targets[0], destination=destination,
                            subgoals=["locate and grasp", "lift and verify carry", "lower and verify placement"],
                            success="target_in_tray_and_jaws_empty")
         target = mission["target"]
@@ -44,7 +51,7 @@ class FixturePlanner:
             return reply("review", "occluded")
         if held not in ("empty", target):
             return reply("ask", "ยังถือก้อนเดิมอยู่ ให้พักที่ไหนคะ")
-        locations, box = objects(snap, target), tray(snap)
+        locations, box = objects(snap, target), tray(snap, mission["destination"])
         if len(locations) != 1 or box is None:
             return reply("ask", "ระบุก้อนหรือถาดให้ชัดเจนอีกครั้งค่ะ")
         x, y = locations[0]
@@ -66,7 +73,7 @@ class FixturePlanner:
             return motion("approach", [(*tip[:2], .10), (x, y, .10), (x, y, .020)],
                           decision, reason)
         tx, ty = (box[0]+box[1])/2, (box[2]+box[3])/2
-        if at_support(snap):
+        if at_support(snap, mission["destination"]):
             return motion("release", [tip, tip])
         span = dist(tip[:2], (tx, ty))
         if span > .004:

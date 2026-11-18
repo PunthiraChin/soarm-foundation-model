@@ -7,6 +7,7 @@ Vec = tuple[float, ...]
 TICK = 50  # milliseconds, fixture cadence
 COLORS = {"blue": 1, "red": 2}
 TRAY = 3
+SECOND_TRAY = 4
 OCCLUDED = 255
 
 
@@ -135,7 +136,7 @@ def parse(raw):
         keys(mission, "goal target destination subgoals success")
         subs = mission["subgoals"]
         if (not nonempty(mission["goal"]) or mission["target"] not in COLORS
-                or mission["destination"] != "tray" or mission["success"] != "target_in_tray_and_jaws_empty"
+                or mission["destination"] not in ("tray", "tray_b") or mission["success"] != "target_in_tray_and_jaws_empty"
                 or type(subs) is not list or not subs or not all(map(nonempty, subs))):
             raise ValueError("unsupported mission")
         mission = Mission(**{**mission, "subgoals": tuple(subs)})

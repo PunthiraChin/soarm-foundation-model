@@ -48,6 +48,15 @@ class ControlLoop:
         if self.state != "stopping":
             self.stop("interruption")
 
+    def clarify(self, revision, answer):
+        if revision != self.rev or self.state != "ask" or self.mission is not None:
+            self.event("unexpected_clarification")
+            return
+        self.command += " " + answer
+        self.deadline = self.now + self.deadline_ms
+        self.refresh("clarification")
+        self.event("clarified")
+
     def begin(self, text):
         self.command, self.mission, self.phase, self.feedback = text, None, "start", "new_goal"
         self.retries = self.requests = 0
@@ -237,7 +246,7 @@ class ControlLoop:
             raise ValueError("unexpected lift")
         if phase in ("carry", "lower", "release") and not carried(snap, target):
             raise ValueError("target absent from jaws")
-        if phase == "release" and (not at_support(snap) or
+        if phase == "release" and (not at_support(snap, self.mission.destination) or
                 any(dist(p, snap.tip) > .001 for p in segment.points)):
             raise ValueError("release outside supported stationary pose")
 
@@ -271,7 +280,7 @@ class ControlLoop:
         elif self.stage == "path" and phase in ("approach", "release"):
             if phase == "release":
                 snap = self.snapshot()
-                if not snap.fresh(self.now, self.last_target_ms) or not at_support(snap) or not carried(snap, self.mission.target):
+                if not snap.fresh(self.now, self.last_target_ms) or not at_support(snap, self.mission.destination) or not carried(snap, self.mission.target):
                     self.refresh("release_withheld")
                     self.active = None
                     return

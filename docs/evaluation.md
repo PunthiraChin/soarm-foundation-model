@@ -7,7 +7,7 @@ Run `python3 -B -m unittest discover -s tests -v` and `python3 -B -m soarm_astra
 | Case | Injected condition | Asserted observable outcome |
 |---|---|---|
 | 1. New layout and Thai goal | Reposition both colours and the tray, select blue or red | Exactly one goal. Final top image places the requested cube inside the relocated tray and wrist shows empty jaws. Checkpoints follow grasp, lift, carry, lower and release. |
-| 2. Ambiguity | Two visible blue cubes | Ask before the first write. |
+| 2. Ambiguity | Two visible blue cubes, or one cube with two candidate trays | Ask before the first write. A revision-bound answer selects left/right and completes the same task using fresh images. |
 | 3. Unreachable IK | Final Cartesian corner exceeds fixture reach within the configured rectangular workspace | Reject the full path with zero writes including pre-open. Replan and finish. |
 | 4. Grasp miss | First closure fails to attach the target | After lift, wrist is empty and target remains visible. Re-open on retry and grasp before carrying. |
 | 5. Missed tray | Release deposits the cube outside the tray | Post-place verification rejects success. Locate and approach the new position, then confirm placement. |
