@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111817">
+<title>SOARM–ASTRA · Workflow</title>
+<style>
+:root{color-scheme:dark;--bg:#111817;--panel:#192320;--line:#34443e;--ink:#f4f3e8;--muted:#c3cfc7;--mint:#94efbd;--lime:#f2df95;--blue:#afcdff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}main{width:min(920px,100%);margin:auto;padding:clamp(18px,5vw,54px)}.tag,.label,.counter{font:700 11px/1.4 ui-monospace,monospace;letter-spacing:.12em}.tag{color:var(--mint);margin:0 0 8px}h1{font-size:clamp(28px,5.5vw,52px);line-height:1.14;margin:0;letter-spacing:-.045em}.subtitle{color:var(--muted);margin:10px 0 22px}.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.role{position:relative;text-align:left;padding:12px 13px;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-width:0;color:var(--ink);font:inherit;cursor:pointer;--accent:var(--mint)}.role:nth-child(2){--accent:var(--lime)}.role:nth-child(3){--accent:var(--blue)}.role.on{border-color:var(--accent);box-shadow:inset 0 2px var(--accent)}.role .label{display:block;color:var(--accent);margin-bottom:4px}.role strong{display:block;line-height:1.2}.role small{display:block;color:var(--muted);margin-top:4px;line-height:1.35}.stage{border:1px solid var(--line);background:#141e1b;margin-top:12px;border-radius:16px;overflow:hidden}.stage-top{display:flex;justify-content:space-between;gap:8px;padding:13px 16px 0;color:var(--muted)}.stage-top .label{color:var(--mint)}svg{width:100%;height:auto;display:block;max-height:290px}.caption{border-top:1px solid var(--line);padding:13px 16px 16px;min-height:94px}.caption strong{display:block;font-size:19px}.caption p{margin:3px 0 0;color:var(--muted)}.controls{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}.controls button{font:inherit;color:var(--ink);background:#24332d;border:1px solid #51665c;border-radius:9px;padding:7px 12px;cursor:pointer}.controls button:disabled{opacity:.5;cursor:default}.controls .spacer{flex:1}.progress{height:3px;background:#33443b}.progress b{height:100%;width:0%;display:block;background:var(--mint)}button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}.legend{font-size:13px;color:var(--muted);margin:12px 1px 0}.legend b{color:var(--ink)}.path{opacity:.16;transition:opacity .2s}.path.on{opacity:1}#feed{opacity:.18;transition:opacity .25s}#feed.on{opacity:1}@media(max-width:430px){.role{padding:11px 8px}.role small{font-size:11px}.role strong{font-size:14px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.outputs{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel)}.outputs-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.outputs-head strong{font-size:17px}.switch{display:flex;gap:5px;flex-wrap:wrap}.switch button{font:inherit;font-size:13px;padding:5px 8px;border:1px solid #536b5f;color:var(--ink);background:#23332c;border-radius:7px;cursor:pointer}.switch button[aria-pressed=true]{color:#101b15;background:var(--mint);border-color:var(--mint)}.run-state{margin:9px 0;color:var(--muted);font-size:13px}.run-state code{color:var(--lime)}.io{display:grid;grid-template-columns:1fr 1fr;gap:8px}.io div{min-width:0;background:#111a17;border:1px solid var(--line);border-radius:8px;padding:9px}.io .label{color:var(--mint)}pre{margin:5px 0 0;font:12px/1.45 ui-monospace,monospace;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}.trigger{color:var(--muted);font-size:13px;margin:9px 0 0}.trigger b{color:var(--ink)}@media(max-width:570px){.io{grid-template-columns:1fr}}
+
+.scenarios{margin-top:32px}.scenarios h2{font-size:clamp(23px,4vw,33px);margin:0}.scenarios .subtitle{margin:6px 0 12px}.case{margin:7px 0;background:var(--panel);border:1px solid var(--line);border-radius:11px}.case summary{display:flex;align-items:center;gap:9px;cursor:pointer;list-style:none;padding:11px 12px}.case summary::-webkit-details-marker{display:none}.case summary::after{content:"+";margin-left:auto;color:var(--mint);font-weight:800}.case[open] summary::after{content:"−"}.case summary:focus-visible{outline:2px solid var(--mint);outline-offset:2px}.case-num,.case-tag{font:700 11px/1.2 ui-monospace,monospace;color:var(--mint)}.case-tag{color:var(--muted);white-space:nowrap;font-size:9px}.case-body{border-top:1px solid var(--line);padding:12px}.setup{margin:0 0 10px;color:var(--muted)}.checks{display:grid;gap:4px}.check{display:grid;grid-template-columns:112px 1fr 1fr 1.15fr;gap:8px;padding:8px;background:#141d19;border-radius:6px;font-size:13px;overflow-wrap:anywhere}.check span{display:block;font:700 10px/1.4 ui-monospace,monospace;color:var(--mint);letter-spacing:.075em}.case-result,.score{color:var(--muted);font-size:14px}.case-result p,.score p{margin:8px 0 0}.score{padding:11px 12px;margin-top:12px;border-left:2px solid var(--mint);background:#17231c}.score strong,.case-result b{color:var(--ink)}@media(max-width:650px){.case-tag{display:none}.check{grid-template-columns:1fr 1fr}.check>b,.check>div:last-child{grid-column:1/-1}}
+.architecture{margin-top:32px}.architecture h2{font-size:clamp(23px,4vw,33px);margin:0}.architecture .subtitle{margin:6px 0 12px}.arch-figure{margin:0;padding:13px;border:1px solid var(--line);border-radius:14px;background:#141d19}.arch-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(42px,.4fr) minmax(0,1.2fr) minmax(55px,.48fr) minmax(0,1fr);align-items:center;gap:4px}.arch-node{min-width:0;background:#1b2923;border:1px solid #44594f;border-radius:9px;padding:10px}.arch-label{display:block;color:var(--mint);font:700 10px/1.4 ui-monospace,monospace;letter-spacing:.08em}.arch-node h3{font-size:17px;line-height:1.2;margin:4px 0}.arch-node p{color:var(--muted);font-size:13px;line-height:1.4;margin:0}.arch-astra .arch-label{color:var(--lime)}.arch-app{border-color:var(--mint)}.arch-robot .arch-label{color:var(--blue)}.arch-edge{text-align:center;color:var(--mint);line-height:1}.arch-edge small{display:block;line-height:1.3;color:var(--muted);font-size:10px}.arch-horizontal,.arch-vertical{font-size:24px}.arch-vertical{display:none}.arch-lane{width:min(100%,370px);margin:auto}.arch-lane .arch-node{text-align:center}.arch-link{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px 13px;padding:5px 0;color:var(--muted);font-size:11px}.arch-link b{color:var(--mint);font-size:15px}.arch-figure figcaption{text-align:center;color:var(--muted);font-size:11px;margin-top:9px}.arch-camera{border:1px dashed #658878;border-radius:7px;padding:7px;background:#18251e}.arch-loop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:7px}.arch-loop div{border:1px solid var(--line);border-radius:8px;padding:9px;background:var(--panel);font-size:13px}.arch-loop b{display:block;color:var(--mint);margin-bottom:4px}.arch-loop span{color:var(--muted)}@media(max-width:620px){.arch-top{grid-template-columns:1fr;text-align:center}.arch-lane{width:100%}.arch-horizontal{display:none}.arch-vertical{display:block}.arch-loop{grid-template-columns:1fr}} 
+.jump{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 16px}.jump a{display:inline-block;font-size:13px;color:var(--mint);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;text-decoration:none}.jump a:hover,.jump a:focus-visible{border-color:var(--mint);text-decoration:underline}.runbook a{color:var(--blue)}.runbook section,.runbook{scroll-margin-top:16px}.runbook h3{font-size:17px;line-height:1.35;margin:3px 0 5px}.runbook p{overflow-wrap:anywhere}.code-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.code-map article,.lab-steps>li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--muted)}.code-map p,.lab-steps p{font-size:14px;margin:0 0 7px}.code-map p:last-child,.lab-steps p:last-child{margin-bottom:0}.code-map .label{color:var(--mint)}.code-map h3,.lab-steps h3{color:var(--ink)}.lab-steps{display:grid;gap:8px;margin:0;padding:0 0 0 22px}.lab-steps>li::marker{color:var(--mint);font:700 13px ui-monospace,monospace}.lab-steps pre{background:#111a17;border:1px solid var(--line);padding:8px 10px;border-radius:7px;margin:6px 0 9px;user-select:text}.lab-pass b{color:var(--mint)}.lab-stop{color:var(--lime)}@media(max-width:600px){.code-map{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<p class="tag">SOARM–ASTRA / WORKFLOW</p>
+<h1>จากคำสั่งเสียง<br>ถึงแขนที่หยิบของ</h1>
+<p class="subtitle">“หยิบลูกบาศก์สีฟ้าไปวางในถาด”</p>
+<nav class="jump" aria-label="ไปยังส่วนของเอกสาร"><a href="#system-architecture">System diagram</a><a href="#io-timing">I/O &amp; timing</a><a href="#key-scenarios">7 scenarios</a><a href="#code-architecture">Code architecture</a><a href="#lab-testing">Lab testing</a></nav>
+<div class="flow" aria-label="สามส่วนของระบบ">
+<button class="role" data-step="0"><span class="label">01 / VOICE</span><strong>GPT‑Live</strong><small>ฟังคำสั่ง · ส่งโจทย์ · บอกผล</small></button>
+<button class="role" data-step="1"><span class="label">02 / PLAN</span><strong>Astra</strong><small>ดูภาพ · คิด waypoint ทีละช่วง</small></button>
+<button class="role" data-step="2"><span class="label">03 / MOVE</span><strong>LeRobot</strong><small>แปลง waypoint เป็นมุมข้อต่อด้วย IK · ขยับแขน</small></button>
+</div>
+<section class="stage" aria-label="ภาพเคลื่อนไหวแขนกล">
+<div class="stage-top"><span class="label">SO‑101 / TABLETOP</span><span class="counter" id="count">01 / 07</span></div>
+<svg viewBox="0 0 640 280" role="img" aria-label="แขนกลหยิบลูกบาศก์สีฟ้าไปวางในถาด เส้นประแสดงทางเดินของกริปเปอร์">
+<defs><pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#25352d"/></pattern><marker id="tip" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3 0 6" fill="none" stroke="#94efbd"/></marker></defs>
+<rect x="24" y="18" width="592" height="230" rx="14" fill="url(#grid)"/>
+<path d="M55 224H588" stroke="#536b5f" stroke-width="2"/><path d="M88 225h112" stroke="#8fa89a" stroke-width="11" stroke-linecap="round"/>
+<path d="M442 211v12h104v-12" fill="none" stroke="#92a99d" stroke-width="4" stroke-linecap="round"/>
+<g id="approach" class="path" fill="none" stroke="#f2df95" stroke-width="2"><path d="M230 143L341 131L341 191" stroke-dasharray="6 6"/><circle cx="341" cy="131" r="6"/><circle cx="341" cy="191" r="6"/></g>
+<g id="transfer" class="path" fill="none" stroke="#f2df95" stroke-width="2"><path d="M341 191V118L494 128V191" stroke-dasharray="6 6"/><circle cx="341" cy="118" r="6"/><circle cx="494" cy="128" r="6"/><circle cx="494" cy="191" r="6"/></g>
+<g id="retry-path" class="path" fill="none" stroke="#f4a2a4" stroke-width="2"><path d="M325 155L352 121L341 191" stroke-dasharray="5 5"/><circle cx="352" cy="121" r="6"/><circle cx="341" cy="191" r="6"/></g><g id="feed" fill="none" stroke="#94efbd" stroke-width="2"><path d="M561 118V60H389" stroke-dasharray="4 5" marker-end="url(#tip)"/><rect x="549" y="107" width="24" height="18" rx="4" fill="#192320"/><circle cx="561" cy="116" r="4"/><text x="398" y="48" fill="#94efbd" stroke="none" font-family="system-ui" font-size="13">TOP + WRIST → ASTRA</text></g>
+<rect id="cube" x="330" y="202" width="22" height="22" rx="4" fill="#9fc7ff"/><path id="arm-shadow" d="" fill="none" stroke="#111916" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/><path id="arm" d="" fill="none" stroke="#9cc2ad" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="141" cy="203" r="12" fill="#dce8dd" stroke="#355046" stroke-width="4"/><circle id="joint" r="9" fill="#dce8dd" stroke="#355046" stroke-width="3"/>
+<g id="grip" fill="none" stroke="#e7f1ea" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path id="claw" d="M0 -9V3M-13 3H13M-13 3V16M13 3V16"/></g>
+</svg>
+<div class="progress" aria-hidden="true"><b id="bar"></b></div>
+<div class="caption" aria-live="polite"><strong id="headline">GPT‑Live รับคำสั่ง</strong><p id="detail">ฟังเสียงแล้วส่งโจทย์ “เอาลูกบาศก์สีฟ้าใส่ถาด” ให้ Astra</p></div>
+</section>
+<div class="controls"><button id="play">หยุดชั่วคราว</button><button id="replay">เริ่มใหม่</button><span class="spacer"></span><button id="prev" aria-label="ขั้นก่อนหน้า">←</button><button id="next" aria-label="ขั้นถัดไป">→</button></div>
+<section class="outputs" aria-label="ตัวอย่างข้อมูลที่ส่งระหว่างระบบ">
+<div class="outputs-head"><strong>ดูข้อมูลที่ไหลในแต่ละช่วง</strong><div class="switch" aria-label="เลือกกรณีทดลอง"><button id="normal" aria-pressed="true">จับติด</button><button id="retry" aria-pressed="false">จับไม่ติด → Retry</button></div></div>
+<p class="run-state">สถานะในแอป: <code id="run-state"></code> · ตัวเลขและ JSON เป็นตัวอย่าง</p>
+<div class="io"><div><span class="label">INPUT</span><pre id="io-in"></pre></div><div><span class="label">OUTPUT</span><pre id="io-out"></pre></div></div>
+<p class="trigger"><b>Trigger:</b> <span id="trigger"></span></p>
+</section>
+<p class="legend"><b>วนกลับ:</b> แอปจำว่าอยู่ช่วงไหน แล้วเรียก Astra หลังแต่ละช่วงพร้อมภาพจากกล้องบน + ข้อมือ; Astra ตอบว่าไปต่อ, retry หรือจบ</p>
+<section class="architecture" id="system-architecture" aria-labelledby="architecture-title">
+<p class="tag">SYSTEM DESIGN / OVERVIEW</p>
+<h2 id="architecture-title">System Architecture</h2>
+<p class="subtitle">Astra ถือแผนทั้งงาน แอปถือสถานะจริง LeRobot ขยับแขน</p>
+<figure class="arch-figure" aria-label="GPT-Live และ Astra คุยกับแอปในเครื่อง แอปส่ง waypoint ไป LeRobot และรับภาพกับสถานะย้อนกลับจาก SO-101">
+<div class="arch-top">
+<article class="arch-node arch-voice"><span class="arch-label">OPENAI API · VOICE</span><h3>GPT‑Live</h3><p>รับเสียงจากมายด์<br>ถามกลับหรือพูดผล</p></article>
+<div class="arch-edge arch-edge-voice"><span class="arch-horizontal" aria-hidden="true">⇄</span><span class="arch-vertical" aria-hidden="true">⇅</span><small>คำสั่ง / ผล</small></div>
+<article class="arch-node arch-app"><span class="arch-label">LOCAL · ใน Python แอปเดิม</span><h3>Python Control Loop</h3><p>จำ goal, phase, segment และผลที่เช็กแล้ว<br>เรียก Astra และส่งงานให้ LeRobot ไม่ใช่ service แยก</p></article>
+<div class="arch-edge arch-edge-astra"><span class="arch-horizontal" aria-hidden="true">⇄</span><span class="arch-vertical" aria-hidden="true">⇅</span><small>ภาพ + สถานะ / แผน</small></div>
+<article class="arch-node arch-astra"><span class="arch-label">OPENAI API · PLANNING</span><h3>Astra 6.2</h3><p>ตั้ง goal และเกณฑ์ผ่าน<br>แบ่งขั้น วาง waypoint และตัดสินผล</p></article>
+</div>
+<div class="arch-lane">
+<div class="arch-link"><span><b>↓</b> Python Control Loop ส่ง waypoint</span><span><b>↑</b> ผลการขยับกลับเข้า Python Control Loop</span></div>
+<article class="arch-node arch-robot"><span class="arch-label">LOCAL · EXECUTION</span><h3>LeRobot + IK</h3><p>แปลง waypoint เป็นมุมข้อต่อ ก่อนเข้าหาของให้เปิดกริปเปอร์กว้างสุดตาม calibration</p></article>
+<div class="arch-link"><span><b>↓</b> คำสั่งมอเตอร์</span><span><b>↑</b> ค่าข้อต่อจริง</span></div>
+<article class="arch-node arch-device"><span class="arch-label">HARDWARE</span><h3>SO‑101 + 2 กล้อง</h3><p>แขน กริปเปอร์ กล้องบน และกล้องข้อมือ</p></article>
+</div>
+<figcaption class="arch-camera">เส้นทางภาพ: กล้องบน + ข้อมือ → ส่วนอ่านภาพใน Python Control Loop → Astra</figcaption>
+</figure>
+<div class="arch-loop">
+<div><b>01 · ตั้งแผน</b><span>แอปส่งคำสั่งกับภาพ → Astra ส่ง goal, เกณฑ์สำเร็จ และ waypoint ช่วงแรก</span></div>
+<div><b>02 · ดูระหว่างทำ</b><span>แอปส่งสถานะกับภาพคู่ใหม่ที่จุดเช็ก รวมถึงระหว่างขน ไม่ต้องรอจนวางเสร็จ</span></div>
+<div><b>03 · ตัดสินใจ</b><span>Astra ส่ง <code>next</code>, <code>retry</code>, <code>replan</code>, <code>ask</code> หรือ <code>done</code> เมื่อภาพยืนยันว่า goal สำเร็จ</span></div>
+</div>
+</section>
+<section class="architecture" id="io-timing" aria-labelledby="io-timing-title">
+<p class="tag">INTERFACES / TIMING</p><h2 id="io-timing-title">ใครส่งอะไร และบ่อยแค่ไหน</h2>
+<p class="subtitle">ค่าตั้งต้นสำหรับเดโม v0 ยังไม่ใช่ค่าที่วัดบนแขนจริง</p>
+<div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>เสียงพูดต่อเนื่อง + สถานะที่แอปส่งกลับ</div><div><span>OUTPUT</span>เหตุการณ์เริ่ม/เปลี่ยน/ยกเลิกคำสั่ง และเสียงตอบ</div><div><span>RATE / TRIGGER</span>ฟังต่อเนื่อง; ส่ง event เมื่อเข้าใจคำสั่ง ไม่ต้องรอรอบ Astra</div></div>
+<div class="check" role="listitem"><b>กล้องบน + ข้อมือ</b><div><span>INPUT</span>ภาพโต๊ะและกริปเปอร์</div><div><span>OUTPUT</span>ภาพพร้อม timestamp; แอปเลือกคู่ล่าสุดสำหรับ Astra</div><div><span>RATE / TRIGGER</span>ตั้งต้น 30 fps ต่อกล้อง (~33 ms/ภาพ); ไม่ส่งขึ้นโมเดลทุกเฟรม</div></div>
+<div class="check" role="listitem"><b>Python control loop</b><div><span>INPUT</span>voice event, ภาพคู่, ผลจาก LeRobot และคำตอบ Astra</div><div><span>OUTPUT</span>ส่ง context ให้ Astra, ส่ง segment ให้ IK, อัปเดตสถานะและยกเลิกงานเก่า</div><div><span>RATE / TRIGGER</span>voice / motion event จัดการทันทีที่ได้รับ; ไม่รอให้ model call จบ</div></div>
+<div class="check" role="listitem"><b>Astra · planner + verifier</b><div><span>INPUT</span>goal, phase, segment, ภาพคู่ล่าสุด และผลของช่วงก่อน</div><div><span>OUTPUT</span>แผนและเกณฑ์ผ่านของทั้งงาน; waypoint ช่วงถัดไป และ next / retry / replan / ask / done</div><div><span>RATE / TRIGGER</span>เรียกเมื่อเริ่ม, หลังจับ/ยก, ตามจุดเช็กระหว่างขน และหลังวาง; ลองตั้งจุดเช็กขณะขนห่างกัน ~0.5–1 วินาทีของการเคลื่อนที่ ไม่ใช่การันตี latency โมเดล</div></div>
+<div class="check" role="listitem"><b>Trajectory + IK ในเครื่อง</b><div><span>INPUT</span>waypoint ในพิกัดฐานแขน + ข้อต่อปัจจุบัน</div><div><span>OUTPUT</span>ลำดับ joint targets ที่ส่งต่อให้ LeRobot</div><div><span>RATE / TRIGGER</span>คำนวณเมื่อได้ segment ใหม่; เวลาและจุดย่อยกำหนดในเครื่อง ไม่ต้องเรียก Astra ทุกจุด</div></div>
+<div class="check" role="listitem"><b>LeRobot / SO‑101</b><div><span>INPUT</span>joint targets + คำสั่งกริปเปอร์</div><div><span>OUTPUT</span>ส่งมุมข้อต่อไปมอเตอร์ อ่านค่าจริง; แอปรายงาน reached / stopped / error</div><div><span>RATE / TRIGGER</span>เริ่มทดสอบลูปส่งคำสั่งและอ่านค่าราว 20 Hz (~50 ms); ลูปภายในเซอร์โวเป็นอีกชั้น ไม่ใช่ 20 Hz นี้</div></div>
+</div><div class="arch-loop">
+<div><b>Motion loop · เร็ว</b><span>ระหว่างเคลื่อนที่ LeRobot คุมตาม trajectory ในเครื่อง ไม่รอคำสั่งรายเฟรมจากโมเดล</span></div>
+<div><b>Visual checks · ตามจุด</b><span>ระหว่างขนให้ Astra ดูภาพคู่ที่จุดเช็ก แบ่งเป็นช่วงสั้น ๆ; ถ้าผลยังไม่กลับ แอปไม่ปล่อยของและไม่เริ่มช่วงถัดไปที่ต้องอาศัยผลนั้น</span></div>
+<div><b>Voice override · แทรกได้</b><span>เมื่อแอปได้รับคำสั่งเปลี่ยน ให้ยกเลิกทางเดิมได้แม้ Astra ยังคิดอยู่ แล้วค่อยวางแผนใหม่</span></div>
+</div><p class="legend">วัดจริงก่อนปรับ: อัตราภาพและมอเตอร์ที่ได้จริง, เวลาจากภาพถึงผล Astra, และเวลาจากรับคำสั่งเปลี่ยนถึงแขนหยุด</p></section><section class="scenarios" id="key-scenarios" aria-labelledby="scenarios-title"><p class="tag">PRODUCT TEST PLAN / 07 CASES</p><h2 id="scenarios-title">Key scenarios</h2><p class="subtitle">ใช้เป็นเกณฑ์ทดสอบก่อนลงมือทำ ตัวอย่างด้านล่างคือผลที่คาดหวัง ไม่ใช่ผลรันบนแขนจริง</p>
+<details class="case" open><summary><span class="case-num">01</span><strong>Happy path · หยิบแล้ววางถูกถาด</strong><span class="case-tag">PASS EXPECTED</span></summary><div class="case-body"><p class="setup"><b>Setup:</b> โต๊ะมีก้อนสีฟ้าหนึ่งก้อนและถาดหนึ่งใบ สั่งครั้งเดียว: “หยิบลูกบาศก์สีฟ้าไปวางในถาด”</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>เสียงคำสั่งครบ</div><div><span>DECISION</span>รู้เป้าหมายและปลายทาง</div><div><span>OUTPUT</span>start_task(T1, goal)</div></div>
+<div class="check" role="listitem"><b>Astra / วางแผน</b><div><span>INPUT</span>T1 + PLAN_GRASP + ภาพ O1 จากกล้องบนและข้อมือ</div><div><span>DECISION</span>เลือกก้อนสีฟ้าและวางทางเข้าหา</div><div><span>OUTPUT</span>S1 + waypoints ในพิกัดฐานแขน + close</div></div>
+<div class="check" role="listitem"><b>LeRobot + IK</b><div><span>INPUT</span>S1 และค่าข้อต่อปัจจุบัน</div><div><span>DECISION</span>แปลงจุดเป็นมุมข้อต่อและขยับแขน</div><div><span>OUTPUT</span>joint targets → แอปรายงาน motion_done(S1)</div></div>
+<div class="check" role="listitem"><b>Astra / เช็กแล้วไปต่อ</b><div><span>INPUT</span>VERIFY_GRASP + O2 + motion_done</div><div><span>DECISION</span>เห็นก้อนอยู่กับกริปเปอร์ จึงไปช่วงวาง</div><div><span>OUTPUT</span>next + S2 waypoints + open; LeRobot รัน S2</div></div>
+<div class="check" role="listitem"><b>Astra → GPT‑Live</b><div><span>INPUT</span>VERIFY_PLACE + O3 หลังปล่อย</div><div><span>DECISION</span>เห็นก้อนอยู่ในถาด แล้วค่อยปิดงาน</div><div><span>OUTPUT</span>done → GPT‑Live บอกว่าวางแล้ว</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> PLAN_GRASP → VERIFY_GRASP → PLAN_PLACE → VERIFY_PLACE → DONE; ไม่มี retry</p><p><b>ผ่านเมื่อ:</b> ก้อนถูกชิ้นและอยู่ในถาดหลังปล่อยจริง, กล่าวว่าสำเร็จหลังเช็กภาพเท่านั้น, ไม่ต้องสั่งซ้ำหรือให้คนช่วย</p></div></div></details>
+<details class="case"><summary><span class="case-num">02</span><strong>คำสั่งไม่ชัด · ถามก่อนขยับ</strong><span class="case-tag">VOICE / INTENT</span></summary><div class="case-body"><p class="setup"><b>Setup:</b> วางก้อนสีฟ้าหนึ่งก้อนกับถาดสองใบ ให้ผู้ใช้พูดว่า “เอาสีฟ้าใส่ถาด” โดยไม่ได้ระบุซ้ายหรือขวา</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>เสียงพูดที่ไม่ระบุถาด</div><div><span>DECISION</span>เก็บโจทย์ตามที่ได้ยิน ไม่เติมปลายทางเอง</div><div><span>OUTPUT</span>start_task(T1, goal)</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>T1 + ภาพคู่ที่เห็นถาดซ้ายและขวา</div><div><span>DECISION</span>พบว่าปลายทางมีสองตัวเลือก</div><div><span>OUTPUT</span>ask + question: “ถาดซ้ายหรือขวาคะ?”</div></div>
+<div class="check" role="listitem"><b>แอป / LeRobot</b><div><span>INPUT</span>decision: ask</div><div><span>DECISION</span>พักงานเดิมรอคำตอบ</div><div><span>OUTPUT</span>WAITING_FOR_USER; ไม่มี joint targets</div></div>
+<div class="check" role="listitem"><b>GPT‑Live → Astra</b><div><span>INPUT</span>คำตอบ “ถาดซ้าย” + T1 + ภาพใหม่</div><div><span>DECISION</span>เติมเฉพาะปลายทางและวางแผนจากฉากปัจจุบัน</div><div><span>OUTPUT</span>อัปเดต T1 แล้วออก S1; ไม่สร้างงานซ้ำ</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> PLAN → WAITING_FOR_USER → PLAN งานเดิมหลังได้คำตอบ</p><p><b>ผ่านเมื่อ:</b> ถามตรงจุดหนึ่งครั้ง ไม่ขยับก่อนคำตอบ หลังตอบแล้วเลือกถาดซ้ายและจบงานเดิม</p></div></div></details>
+<details class="case"><summary><span class="case-num">03</span><strong>Waypoint ไปไม่ถึง · เปลี่ยนทาง</strong><span class="case-tag">IK / EXECUTION</span></summary><div class="case-body"><p class="setup"><b>Setup:</b> ใส่ waypoint หนึ่งจุดเกินระยะเอื้อมในข้อมูลทดสอบ ให้เป็นความผิดพลาดช่วงก่อนขยับ</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>คำสั่งครบ</div><div><span>DECISION</span>ส่งงานปกติ ไม่แก้พิกัดเอง</div><div><span>OUTPUT</span>start_task(T1, goal)</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>ภาพ O1 + TASK / PLAN_GRASP</div><div><span>DECISION</span>เสนอทาง S1 ที่มีจุดไปไม่ถึง</div><div><span>OUTPUT</span>S1 + waypoints</div></div>
+<div class="check" role="listitem"><b>LeRobot + IK / แอป</b><div><span>INPUT</span>S1 และค่าข้อต่อปัจจุบัน</div><div><span>DECISION</span>IK แก้จุดนั้นไม่ได้; แอปไม่ส่งชุดนี้ให้มอเตอร์</div><div><span>OUTPUT</span>path_rejected(S1, waypoint_index: 2); ไม่มี motor packet</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>ผลปฏิเสธ S1 + ภาพและสถานะล่าสุด</div><div><span>DECISION</span>ปรับมุมหรือจุดเข้าหาตามข้อจำกัด ไม่ส่งเส้นเดิมซ้ำ</div><div><span>OUTPUT</span>replan + S1b หรือ blocked ถ้าไม่มีทางใหม่</div></div>
+<div class="check" role="listitem"><b>แอป / LeRobot</b><div><span>INPUT</span>S1b หรือ blocked</div><div><span>DECISION</span>ทดสอบทางใหม่ก่อนวิ่ง หรือคงสถานะรอ</div><div><span>OUTPUT</span>รันเฉพาะ S1b ที่ผ่าน; ถ้า blocked ให้ GPT‑Live บอกปัญหา</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> EXECUTE S1 ถูกปฏิเสธก่อนขยับ → REPLAN ช่วงเดิม → ตรวจ S1b ใหม่</p><p><b>ผ่านเมื่อ:</b> ไม่มี motor packet จาก S1 ที่ผิด, ผลตอบกลับระบุจุดผิด, ไม่ลองเส้นเดิมซ้ำ</p></div></div></details>
+<details class="case"><summary><span class="case-num">04</span><strong>แขนไปถึง แต่จับไม่ติด · Retry</strong><span class="case-tag">GRASP / VERIFY</span></summary><div class="case-body"><p class="setup"><b>Setup:</b> จำลองให้กริปเปอร์ปิดคลาดจากก้อน ก้อนยังอยู่บนโต๊ะหลังแขนยก</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>คำสั่งครบ</div><div><span>DECISION</span>ส่งงานเดียว</div><div><span>OUTPUT</span>start_task(T1, goal)</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>PLAN_GRASP + O1</div><div><span>DECISION</span>ออกทางเข้าหาช่วงแรก</div><div><span>OUTPUT</span>S1 + waypoints + close</div></div>
+<div class="check" role="listitem"><b>LeRobot + IK</b><div><span>INPUT</span>S1</div><div><span>DECISION</span>ขยับถึงจุดและปิดกริปเปอร์</div><div><span>OUTPUT</span>joint targets แล้วแอปรายงาน motion_done(S1)</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>VERIFY_GRASP + O2: ก้อนยังอยู่บนโต๊ะ</div><div><span>DECISION</span>แยกว่าขยับจบแต่จับไม่สำเร็จ คำนวณจุดเข้าหาใหม่</div><div><span>OUTPUT</span>retry + S1b + waypoint ชุดใหม่</div></div>
+<div class="check" role="listitem"><b>แอป / LeRobot → Astra</b><div><span>INPUT</span>S1b + ภาพใหม่ O3 หลังลองอีกครั้ง</div><div><span>DECISION</span>รันช่วงจับใหม่; ไปวางก็ต่อเมื่อเห็นว่าก้อนอยู่กับกริปเปอร์</div><div><span>OUTPUT</span>ถ้าจับติด: next + S2; ถ้ายังไม่ติด: ยังไม่รายงาน success</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> VERIFY_GRASP → RETRY_GRASP → VERIFY_GRASP → PLAN_PLACE เมื่อจับติด</p><p><b>ผ่านเมื่อ:</b> ไม่เริ่ม S2 หลังจับพลาดครั้งแรก, retry อิงภาพใหม่, นับว่า recover สำเร็จแยกจากผ่านรอบแรก</p></div></div></details>
+<details class="case"><summary><span class="case-num">05</span><strong>ปล่อยแล้ว แต่ของอยู่นอกถาด</strong><span class="case-tag">PLACEMENT / OUTCOME</span></summary><div class="case-body"><p class="setup"><b>Setup:</b> ช่วงจับผ่าน แต่หลังเปิดกริปเปอร์ให้ก้อนตกข้างถาดและยังมองเห็นได้</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>คำสั่งครบ</div><div><span>DECISION</span>ส่งเป้าหมายเดิมและรอผล</div><div><span>OUTPUT</span>start_task(T1, goal)</div></div>
+<div class="check" role="listitem"><b>Astra → LeRobot</b><div><span>INPUT</span>จับติดจาก O2 + แผน S2</div><div><span>DECISION</span>ย้ายไปถาดแล้วปล่อยตามแผน</div><div><span>OUTPUT</span>joint targets แล้วแอปรายงาน motion_done(S2)</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>VERIFY_PLACE + O3: ก้อนอยู่นอกถาด</div><div><span>DECISION</span>ไม่ถือว่า S2 จบคือทั้งงานจบ; หาตำแหน่งก้อนปัจจุบัน</div><div><span>OUTPUT</span>replan + S3 เพื่อหยิบใหม่ หรือ ask หากไม่เห็นตำแหน่ง</div></div>
+<div class="check" role="listitem"><b>แอป / LeRobot → Astra</b><div><span>INPUT</span>S3 และภาพหลังทำช่วงแก้</div><div><span>DECISION</span>รันแผนใหม่ แล้วตรวจการจับและการวางใหม่ตามลำดับ</div><div><span>OUTPUT</span>DONE เฉพาะเมื่อภาพล่าสุดเห็นก้อนในถาด; GPT‑Live ยังไม่บอกว่าสำเร็จก่อนนั้น</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> VERIFY_PLACE → REPLAN_GRASP จากตำแหน่งใหม่ → PLACE → VERIFY_PLACE</p><p><b>ผ่านเมื่อ:</b> ไม่รายงานสำเร็จจาก motion_done; แผนแก้เริ่มที่ตำแหน่งใหม่ ไม่ทำ S2 ซ้ำกับกริปเปอร์เปล่า</p></div></div></details>
+<details class="case"><summary><span class="case-num">06</span><strong>หยิบติด แต่ของร่วงระหว่างทาง</strong><span class="case-tag">TRANSFER / LIVE CHECK</span></summary><div class="case-body">
+<p class="setup"><b>Setup:</b> ภาพหลังยกยืนยันว่าก้อนติดมือแล้ว จำลองให้ก้อนหลุดระหว่างย้ายไปถาด ก่อนถึงจุดปล่อย</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>คำสั่งให้ย้ายก้อนสีฟ้าไปถาด</div><div><span>DECISION</span>เริ่มงานและรอผล ไม่สั่งมอเตอร์เอง</div><div><span>OUTPUT</span>start_task(T1, goal)</div></div>
+<div class="check" role="listitem"><b>Astra / วางทาง</b><div><span>INPUT</span>ภาพหลังยก: ก้อนอยู่กับกริปเปอร์</div><div><span>DECISION</span>วางทางไปถาดเป็นช่วงสั้น ๆ ให้มีจุดเช็กระหว่างทาง</div><div><span>OUTPUT</span>S2a → S2b → ช่วงปล่อย; เริ่ม S2a เท่านั้น</div></div>
+<div class="check" role="listitem"><b>LeRobot + แอป</b><div><span>INPUT</span>waypoints ของช่วงปัจจุบัน + ค่าข้อต่อ</div><div><span>DECISION</span>ทำ IK และขยับช่วงนั้น ระหว่างย้ายส่งภาพคู่ตามจังหวะที่กำหนด และเช็กก่อนอนุญาตช่วงถัดไป</div><div><span>OUTPUT</span>ภาพบน + ข้อมือพร้อมเวลา, phase: EXECUTE_TRANSFER, segment_id: S2a, obs_id</div></div>
+<div class="check" role="listitem"><b>Astra / เช็กระหว่างทาง</b><div><span>INPUT</span>ภาพล่าสุดเทียบกับภาพหลังยก: กริปเปอร์ว่างและเห็นก้อนแยกจากมือ</div><div><span>DECISION</span>ยังติดมือ → ไปต่อ; เห็นว่าหลุด → ยกเลิกทางที่เหลือ; ถ้าภาพบัง → ขอภาพใหม่ ไม่สรุปว่าหลุด</div><div><span>OUTPUT</span>continue / abort_transfer + object_dropped / review_again</div></div>
+<div class="check" role="listitem"><b>แอป → LeRobot → Astra</b><div><span>INPUT</span>abort_transfer + ภาพล่าสุด</div><div><span>DECISION</span>ยกเลิกช่วงที่ยังไม่เริ่ม ไม่ส่งคำสั่งปล่อยเหนือถาด แล้ววางแผนหยิบใหม่จากจุดที่ก้อนตก ถ้าอยู่ในระยะ</div><div><span>OUTPUT</span>TRANSFER_ABORTED → REPLAN_GRASP จากตำแหน่งใหม่ หรือ ask ถ้าหาก้อนไม่เจอ / เอื้อมไม่ถึง</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> EXECUTE_TRANSFER → OBJECT_DROPPED → REPLAN_GRASP จากจุดที่ตก → VERIFY_GRASP → วางใหม่</p><p><b>ผ่านเมื่อ:</b> ตรวจพบก่อนสั่งปล่อย, ไม่เริ่มช่วงถัดไปหลังเห็นว่าหลุด, ไม่แจ้งว่าสำเร็จ และถ้าหยิบใหม่ต้องเริ่มที่ตำแหน่งใหม่ ลองให้ร่วงช่วงต้น กลาง และใกล้ถาด แล้วจดเวลาจากภาพแรกที่เห็นว่าหลุดถึงคำสั่งยกเลิก</p></div></div></details><details class="case"><summary><span class="case-num">07</span><strong>คนเปลี่ยนคำสั่งระหว่างทำ · หยุดงานเดิม แล้วหยิบอีกชิ้น</strong><span class="case-tag">VOICE OVERRIDE</span></summary><div class="case-body"><p class="setup"><b>Setup:</b> เริ่ม T1 หยิบชิ้นสีฟ้า แล้วสั่งเปลี่ยนเป็นสีแดงระหว่างเข้าหาหรือระหว่างถือชิ้นสีฟ้า ทดสอบด้วยว่าคำตอบของ T1 มาถึงช้า</p><div class="checks" role="list">
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>ขณะทำงาน T1 มายด์พูด “เลิกทำอันเดิม ไปหยิบชิ้นสีแดงแทน”</div><div><span>DECISION</span>แยกเจตนาหยุดงานเดิมกับเป้าหมายใหม่ ไม่ตีความเป็นคิวต่อท้าย</div><div><span>OUTPUT</span>replace_task(T1, goal: pick_red)</div></div>
+<div class="check" role="listitem"><b>Python control loop</b><div><span>INPUT</span>replace_task และสถานะงานเดิม</div><div><span>DECISION</span>ให้การยกเลิกมาก่อนการวางแผนใหม่ ยกเลิกคิว T1 และทิ้งคำตอบ Astra ที่กลับมาช้าของ T1</div><div><span>OUTPUT</span>cancel(T1); STOPPING; เก็บเป้าหมายใหม่ไว้ชั่วคราว</div></div>
+<div class="check" role="listitem"><b>LeRobot + สถานะในเครื่อง</b><div><span>INPUT</span>คำสั่งหยุดจากแอป + ค่าข้อต่อจริง</div><div><span>DECISION</span>หยุด trajectory และคงสถานะกริปเปอร์ ไม่เปิดมือกลางทางถ้ากำลังถือของ</div><div><span>OUTPUT</span>stopped(T1) + joint state; ถ้ามีของค้างในมือ ให้จัดวางที่พักก่อน หรือถามถ้าไม่มีจุดพักที่กำหนด</div></div>
+<div class="check" role="listitem"><b>Astra</b><div><span>INPUT</span>ยืนยันว่าหยุดแล้ว + ภาพสองมุมใหม่ + เป้าหมายสีแดง</div><div><span>DECISION</span>วางแผนจากตำแหน่งจริงหลังหยุด จัดการของเดิมในมือก่อนถ้าจำเป็น แล้วเลือกชิ้นสีแดง</div><div><span>OUTPUT</span>T2 + เกณฑ์สำเร็จใหม่ + waypoint ช่วงแรก; ไม่ reuse waypoint จาก T1</div></div>
+<div class="check" role="listitem"><b>GPT‑Live</b><div><span>INPUT</span>แอปรายงานว่า T1 ยกเลิกและเริ่ม T2 ได้แล้ว</div><div><span>DECISION</span>ตอบสถานะตามจริงและรายงานผลของงานใหม่หลังตรวจ</div><div><span>OUTPUT</span>“หยุดงานเดิมแล้ว กำลังเปลี่ยนไปหยิบชิ้นสีแดงค่ะ”</div></div>
+</div><div class="case-result"><p><b>แผนเปลี่ยนยังไง:</b> T1 RUNNING → STOPPING → CANCELLED → ภาพใหม่ → T2 PLAN; ถ้ายังถือของให้จัดการก่อนหยิบใหม่</p><p><b>ผ่านเมื่อ:</b> หลังรับคำสั่งเปลี่ยน ไม่มี waypoint เดิมเริ่มเพิ่ม แม้ผล Astra ของ T1 มาช้า; ไม่ปล่อยของเดิมกลางทาง; เริ่ม T2 หลังแขนหยุดและเห็นสถานะล่าสุด และหยิบชิ้นสีแดงถูกชิ้น จดเวลาจากคำสั่งพูดจบ → แอปรับ event → แขนหยุด → เริ่มงานใหม่</p></div></div></details><div class="score"><strong>Evaluation รอบแรก</strong><p>ลอง 3 ครั้งต่อเคส แยก <b>ผ่านรอบแรก / ผ่านหลังแก้ / ไม่ผ่าน</b> ตามเกณฑ์ของเคส สำหรับเคสที่ต้องถาม การถามก่อนขยับคือพฤติกรรมที่ถูก ไม่ใช่ความล้มเหลว</p><p>ต่อรอบจด <code>task_id · phase · obs_id · segment_id · decision · result</code> พร้อมจำนวน retry แล้วเช็กว่าเคสที่ไม่ควรขยับไม่ส่งคำสั่งมอเตอร์ และไม่มีการแจ้งสำเร็จผิด</p></div></section>
+<section class="architecture runbook" id="code-architecture" aria-labelledby="code-title">
+<p class="tag">IMPLEMENTED / CODE MAP</p>
+<h2 id="code-title">Code Architecture</h2>
+<p class="subtitle" id="code-version">อ้างอิง commit <code>bf14ea2</code> · ภาพข้างบนอธิบายแนวคิด ส่วนนี้อธิบายโค้ดที่มีจริง</p>
+<div class="score" id="readiness"><strong>สถานะ: โค้ดต่อครบสำหรับโจทย์โต๊ะติด marker พร้อมเริ่ม commissioning</strong>
+<p>ผ่าน 57/57 เทสต์ออฟไลน์บน Linux รวม OpenCV, LeRobot/Placo กับ URDF ที่ pin ไว้ และ API/เสียงผ่าน transport จำลอง. ยังไม่ได้ทดสอบบัญชี API จริง, ไมค์และลำโพงบน Mac, กล้องที่คาลิเบรตแล้ว หรือการเคลื่อนและหยุดของแขนจริง.</p><p id="review-status">ยังไม่มีโค้ดสำหรับวัตถุไม่ติด marker หรือแบบจำลองการชนกับสิ่งของทั้งฉาก/ทุกจุดระหว่าง sample. GPT Live อาจพูดสถานะใหม่ด้วยคำอื่นหรือไม่พูด และแอปยืนยันไม่ได้ว่าผู้ใช้ได้ยิน ให้ถือสถานะบน CLI เป็นข้อมูลอ้างอิง.</p></div>
+<div class="code-map">
+<article><span class="label">01 / COMPOSE</span><h3><code>app.py</code> · <code>profile.py</code> · <code>commission.py</code></h3><p>โหมดจริงแยก <code>preflight</code> ตรวจไฟล์/bus/กล้อง, <code>shadow</code> ตรวจแผนช่วงแรกโดยไม่สั่งมอเตอร์, <code>rehearse-hold</code> ทดสอบการหยุดแบบจำกัด และ <code>hardware</code> สำหรับชุดที่ผ่าน commissioning. ส่วน <code>scripts.dry_run</code> ใช้ชุดจำลองและไม่ต้องใช้ key.</p></article>
+<article><span class="label">02 / VOICE</span><h3><code>live.py</code> · <code>voice.py</code></h3><p>GPT Live รับเสียงและคืน structured intent: เป้าหมายใหม่, เปลี่ยนเป้าหมาย หรือหยุด. ส่งสถานะและตัวเลือกเมื่อขอคำชี้แจง โดยให้ Live ตอบตามภาษาล่าสุดของผู้ใช้ และไม่รอเสียงใน control loop. การพูดแทรกกับคำสั่งหยุดแขนเป็นคนละเหตุการณ์.</p></article>
+<article><span class="label">03 / OBSERVE &amp; PLAN</span><h3><code>metric.py</code> · <code>astra_api.py</code></h3><p>OpenCV อ่านกล้องบนและข้อมือพร้อม timestamp แยกกัน ใช้ marker และ calibration เพื่อหาตำแหน่งจริง. Astra รับภาพทั้งสองกับ pose/scene แล้วคืน decision และ Cartesian waypoint 2–4 จุดต่อช่วง. API ทำงานแยกจาก loop และมี timeout.</p></article>
+<article><span class="label">04 / DECIDE &amp; TRACK</span><h3><code>contracts.py</code> · <code>runtime.py</code></h3><p>ตรวจ schema และปฏิเสธคำตอบที่ revision หรือ observation ไม่ตรง. ก่อนรับแผนที่มาช้าและก่อนเริ่มขยับ เช็กภาพและ encoder ใหม่ว่า scene ยังตรงกับแผน. หลัง grasp/ช่วงถือ/ก่อนปล่อย/หลังวาง ดูหลักฐานใหม่เพื่อไปต่อ ถาม หรือ retry.</p></article>
+<article><span class="label">05 / MOVE</span><h3><code>motion.py</code> · <code>hardware.py</code></h3><p>แปลง waypoint เป็น sample แล้วใช้ Placo/URDF ทำ IK. ตรวจขอบเขต, มุม, ขนาด step และ pose ก่อนส่งคำสั่ง. LeRobot Feetech bus ส่งค่า 5 แกนและ gripper แยก อ่านค่าจริงกลับ และแยก <code>hold</code>, register ACK และ encoder นิ่ง.</p></article>
+<article><span class="label">06 / OBSERVE THE RUN</span><h3><code>telemetry.py</code></h3><p>log สดและ JSONL เชื่อมด้วย <code>run</code>, <code>revision</code>, <code>obs</code>, <code>slice</code>. CLI แสดงไทยหรืออังกฤษ; JSONL เก็บรหัสกลาง. Live รับเฉพาะสถานะสั้น ไม่อ่าน log ทุกบรรทัด และไม่ส่งสถานะของงานเก่า. Log ปกติไม่มี key, เสียง, ภาพ หรือข้อความดิบ.</p></article>
+</div>
+</section>
+<section class="architecture runbook" id="lab-testing" aria-labelledby="lab-title">
+<p class="tag">OPERATOR RUNBOOK / SO‑101</p>
+<h2 id="lab-title">Lab Testing ทีละขั้น</h2>
+<p class="subtitle">เริ่มจากโหมดไม่ขยับแขน ผ่านทีละขั้นก่อนให้ของจริงเคลื่อน คู่มือนี้ใช้บน Mac ที่ต่อแขน ไม่ใช่บน cloud workspace.</p>
+<ol class="lab-steps">
+<li><h3>เตรียมเครื่องและรัน baseline โดยยังไม่ต่อมอเตอร์</h3>
+<p>เปิด checkout เวอร์ชันที่มี <code>docs/commissioning.md</code> ใช้ venv Python 3.12 แยกจาก ACT/SmolVLA และ recording. Runtime pin LeRobot 0.4.4 ส่วนชุด recording เดิมใช้ 0.6.2: ไม่แก้ venv เดิม. ตรวจว่า Mac ติดตั้ง wheel และ PortAudio ได้ก่อน. ใช้ <a href="https://github.com/TheRobotStudio/SO-ARM100/tree/a758567c3978dfeefe282ede0500085a48fe8f78/Simulation/SO101">SO‑101 URDF revision ที่ pin ไว้</a> พร้อม meshes และ license แล้วตั้ง <code>SOARM_TEST_URDF</code> ไปยังไฟล์จริง.</p>
+<pre><code>python3.12 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements-runtime.txt
+python -m pip check
+python -B -m unittest discover -s tests -v
+python -B -m scripts.dry_run 'Pick up the blue cube and place it in the tray'
+python -B -m scripts.dry_run --preview --trace</code></pre>
+<p class="lab-pass"><b>ผ่านเมื่อ:</b> dependency check + mock tests ผ่าน, mock จบที่ <code>done</code>, sample shadow เห็น <code>shadow_preview</code> และ <code>simulated_writes=0</code>. ถ้า native test ขึ้น skipped อย่านับว่าผ่าน. ติดตั้งไม่ได้ให้หยุดที่ขั้นนี้.</p>
+</li>
+<li><h3>เลือก follower และตรวจ serial โดยไม่เปิด torque</h3>
+<p>คัดลอก template เป็นไฟล์ส่วนตัว <code>calibration/local/profile.json</code> ตาม runbook. ตั้ง ID เป็น <code>humanoice_follower_arm</code>; ใช้ <code>humanoice_follower_arm.json</code> จาก <b>รอบ recording ล่าสุด</b> ใต้ <code>calibration/robots/so_follower/</code> ใน cache เดิม ไม่ใช้ <code>humanoice_follower.json</code> ของ ACT หรือไฟล์ leader. ให้ <code>calibration_file</code> กับ <code>SOARM_RECORDING_CALIBRATION</code> ชี้ absolute path เดียวกัน. เลือกพอร์ตจากเครื่องตอนนี้ ไม่ใช้หมายเลข USB ประวัติเป็นหลักฐาน. คำสั่งด้านล่างใช้ file path ใน cache ปกติของ LeRobot; ถ้าเก็บไว้ที่อื่นให้แก้ตามไฟล์ recording ที่ยืนยันแล้ว.</p>
+<pre><code>export SOARM_RECORDING_CALIBRATION="$HOME/.cache/huggingface/lerobot/calibration/robots/so_follower/humanoice_follower_arm.json"
+python -m serial.tools.list_ports -v
+python -B -m soarm_astra --mode preflight --stage files --profile calibration/local/profile.json
+python -B -m soarm_astra --mode preflight --stage bus --profile calibration/local/profile.json</code></pre>
+<p class="lab-pass"><b>ผ่านเมื่อ:</b> พบ follower ที่ตรงกับบันทึก, ไฟล์และ URDF ผ่าน, อ่าน motor IDs/encoder ได้, ค่า register ตรงและ torque ปิดอยู่. ถ้าไม่ตรงหรือมี torque ให้หยุดและตรวจอุปกรณ์ ไม่บันทึก calibration ทับ และไม่ใช้ <code>follower.connect(calibrate=False)</code> แทน read-only.</p>
+</li>
+<li><h3>ดูภาพสองกล้องก่อน แล้วคาลิเบรตกล้องกับแขน</h3>
+<p>ค่าเริ่มต้นจากรอบ recording: top 0, wrist 1, 640 × 480 ที่ 30 FPS ที่ขอจากกล้อง ไม่ใช่ FPS ที่วัดแล้ว. เปิดภาพ preview บน Mac; กล้อง top ต้องเห็นโต๊ะ และ wrist ต้องเห็นปากคีบ. ใช้ path รูปที่ยังไม่มีไฟล์เพื่อไม่เขียนทับ.</p>
+<pre><code>system_profiler SPCameraDataType
+python -B -m soarm_astra --mode preflight --stage cameras --profile calibration/local/profile.json --preview-file calibration/local/roles.jpg</code></pre>
+<p>วัด intrinsics/distortion และ transform ของ top→ฐาน กับ wrist→ปลายแขน. ใส่ ArUco <code>DICT_4X4_50</code> ที่ก้อน ถาด จุดอ้างอิงแต่ละกล้อง และจุดที่ยืนยันมือว่าง. วัด tag offsets, TCP, ความสูงจับ/ปล่อย, ขอบเขตโต๊ะ, มุม/ข้อจำกัด และ latency ตาม runbook. ไฟล์ motor calibration ไม่ได้มีค่าพวกนี้.</p>
+<pre><code>python -B -m soarm_astra --mode preflight --stage full --profile calibration/local/profile.json</code></pre>
+<p class="lab-pass"><b>ผ่านเมื่อ:</b> ภาพ/บทบาทตรง, mount และ tag ตรง, การอ่านวัดผ่าน freshness/skew โดยไม่มี motor writes. ตรวจเทียบ FK กับ TCP ที่วัดจริงหลายท่า. ถ้าภาพสลับ/บัง มุมไม่ตรง หรือ pose เลื่อน ให้แก้ก่อนเดินต่อ.</p>
+</li>
+<li><h3>ทดสอบ Astra และ GPT Live จริง โดยยังไม่ขยับแขน</h3>
+<p>ตั้ง <code>OPENAI_API_KEY</code> ใน secret หรือ environment ของเครื่อง ไม่ใส่ Git/แชต. ขั้นนี้เรียก Astra จริงทั้งสองคำสั่งและส่งภาพจริงจากกล้อง; คำสั่งที่สองเปิด GPT Live ส่งเสียงจากไมค์ด้วย. ทำให้มุมกล้องไม่ติดคนหรือข้อมูลที่ไม่ต้องการส่ง.</p>
+<pre><code>python -B -m soarm_astra --mode shadow --profile calibration/local/profile.json --typed 'Pick up the blue cube and place it in the tray'
+python -B -m soarm_astra --mode shadow --profile calibration/local/profile.json</code></pre>
+<p class="lab-pass"><b>ผ่านเมื่อ:</b> ได้คำตอบ planner ถูก schema และแผนช่วงแรกผ่าน IK, สั่งภาษาไทยและอังกฤษทีละรอบแล้วเกิด typed intent ตรงกับคำสั่ง, ได้ยินสถานะจากลำโพงจริง, log เชื่อมแต่ละช่วงได้, และไม่มี motor writes. ลองโจทย์กำกวมเพื่อเช็กว่าระบบถามได้จริง. ถ้า timeout, สิทธิ์โมเดลไม่ผ่าน หรือเสียงไม่ตอบ ให้แก้ API แยกจากการเปิด motion.</p>
+</li>
+<li><h3>ทดสอบการหยุดด้วยการขยับจำกัด ไม่เรียก API</h3>
+<p>ทำหลัง full preflight เท่านั้น: รองรับแขนเปล่า ให้คนที่สองอยู่ที่จุดตัดกำลัง และตรวจเส้นทางข้อมือสั้น ๆ ว่าไม่มีสิ่งกีดขวาง. ปิด <code>commissioned</code> ไว้และเปิด <code>allow_hold_rehearsal</code> ชั่วคราวเฉพาะในไฟล์ส่วนตัว. คำสั่งนี้เปิด torque และขยับ wrist roll +0.5° หนึ่งครั้ง โดยไม่มีการสั่งจากเสียงหรือ planner.</p>
+<pre><code>python -B -m soarm_astra --mode rehearse-hold --profile calibration/local/profile.json --enable-motion --trace</code></pre>
+<p class="lab-pass"><b>ผ่านเมื่อ:</b> encoder ขยับจริงในทิศที่คาด ระบบยืนยันทั้ง register echo และ encoder นิ่ง แล้วทำตามขั้นตอนปิดเครื่องของแล็บ. หากผิดทิศ จับสัญญาณหยุดไม่ได้ หรือขาดคนเฝ้าจุดตัดกำลัง ให้หยุดก่อน demo. ปิด <code>allow_hold_rehearsal</code> เมื่อเสร็จ.</p>
+</li>
+<li><h3>ทดสอบหยิบวางจริงโดยมีผู้ปฏิบัติงานเฝ้าแขน</h3>
+<p>จัดพื้นที่ว่าง รองรับแขนและโหลด และมีวิธีตัดกำลังจริงเข้าถึงได้ทันที. ทวน watchdog, stop file และข้อยกเว้น collision ทีละคู่จากคู่มือ. หลังทดสอบการหยุด ให้เริ่มกับของเบาและท่าที่ตรวจสอบแล้ว. ตั้ง <code>commissioned: true</code> เฉพาะหลังผู้ปฏิบัติงานตรวจตาม runbook. คำสั่งใช้ GPT Live เป็นค่าเริ่มต้น; เติม <code>--typed</code> ตาม README สำหรับรับคำสั่งข้อความ.</p>
+<pre><code>mkdir -p runs
+python -B -m soarm_astra --mode hardware --profile calibration/local/profile.json --enable-motion --jsonl runs/supervised.jsonl</code></pre>
+<p class="lab-stop"><b>คำสั่งนี้ขยับแขนได้:</b> ถ้ามีการเคลื่อนที่ไม่ตรงแผน ให้ใช้วิธีหยุดจริงของแล็บ ไม่รอสั่งเสียง. ในการทดสอบ local hold ใช้ <code>touch "$SOARM_STOP_PATH"</code> เฉพาะเมื่อตั้งตัวแปรให้ตรงกับ absolute <code>stop_file</code> ของ profile; ต้องตรวจทั้ง <code>stop_ack</code> และ <code>settled</code>, ไม่ใช่ดูแค่ ACK. ตอนปิดโปรแกรมอย่าคิดว่า torque ถูกปิดเอง.</p>
+<p class="lab-pass"><b>ผ่านเมื่อ:</b> encoder ตามคำสั่งได้จริงและหยุดนิ่ง, หยิบและวางจากคำสั่งไทยและอังกฤษในฉากใหม่ได้, เคสเปลี่ยนงานไม่ปล่อยของกลางอากาศและไม่ส่งคำสั่งงานเก่าหลัง ACK. เก็บผลแยกครั้งแรก/หลังแก้/มีคนช่วย.</p></li>
+</ol>
+<div class="score"><strong>อ่าน log เพื่อตัดสินใจว่าจะเช็กตรงไหน</strong>
+<p><code>sensor_stale</code> → เช็กภาพ/encoder และเวลาวัด · <code>scene_moved_or_uncertain</code> → เช็ก marker, การบัง หรือวัตถุเปลี่ยนตำแหน่ง · <code>planner_error</code> → เช็ก API · <code>path_rejected</code> → เช็ก IK, limits และ pose · <code>tracking_timeout</code> → ดู encoder และผลหยุดจริง.</p>
+<p>เมื่อเปลี่ยนงาน ให้ดู <code>last_old_write → hold_sent → stop_ack → settled → checkpoint → first_new_write</code>. ถ้าขาด ACK/settled ให้หยุดตรวจ ไม่เริ่มงานใหม่. ใช้ชื่อ JSONL ใหม่ต่อรอบ; log อยู่ในเครื่อง และอย่าแนบ preview/calibration กับ public repo.</p>
+</div>
+</section>
+</main>
+<script>
+"use strict";
+const step=(role,ms,head,detail,visual,state,input,output,trigger)=>({role,ms,head,detail,visual,state,input,output,trigger});
+const goal="หยิบลูกบาศก์สีฟ้าไปวางในถาด";
+const cmd={task_id:"T1",goal};
+const bounds={frame:"robot_base",xyz_unit:"m"};
+const approach=[[0.16,0.03,0.11],[0.23,0.04,0.09],[0.23,0.04,0.04]];
+const revised=[[0.20,0.05,0.10],[0.24,0.03,0.05],[0.24,0.03,0.04]];
+const transfer=[[0.24,0.03,0.12],[0.19,-0.13,0.12],[0.19,-0.13,0.05]];
+const snap=(phase,attempt,obs_id,motion)=>({task_id:"T1",phase,attempt,obs_id,images:["top","wrist"],...(motion?{motion}: {})});
+const plan=(segment_id,obs_id,waypoints,gripper_at_end,extra={})=>({segment_id,obs_id,...bounds,waypoints,gripper_at_end,...extra});
+const motors=(segment_id,adjust=0)=>({segment_id,"ตัวอย่าง joint target (deg)": {"shoulder_pan.pos":10+adjust,"shoulder_lift.pos":-27,"elbow_flex.pos":56,"wrist_flex.pos":-31,"wrist_roll.pos":4},"gripper.pos":32,"gripper unit":"ตาม config","feedback จากแอปหลังจบ":"motion_done"});
+function sequence(miss) {
+ const approachPlan=plan("S1","O1",approach,"close");
+ const retryPlan=plan("S1b","O2",revised,"close",{decision:"retry",reason:"object_still_on_table"});
+ const heldObs=miss?"O3":"O2",placedObs=miss?"O4":"O3";
+ const placePlan=plan("S2",heldObs,transfer,"open",{decision:"next",grasp:"held"});
+ const list=[
+ step(0,3400,"GPT‑Live รับคำสั่ง","แปลงคำสั่งเสียงเป็นโจทย์ให้แอปส่งต่อไปยัง Astra","voice","T1 / START",{"เสียง":goal},{tool:"start_task",args:cmd},"แอปเปิด T1 เก็บภาพสองมุม แล้วเรียก Astra"),
+ step(1,4300,"Astra วาง waypoint ช่วงเข้าหา","ส่งจุดที่ปลายกริปเปอร์ควรผ่านในช่วงนี้ ไม่ได้ส่งมุมมอเตอร์","plan","T1 / PLAN_GRASP / #1",{...snap("plan_grasp",1,"O1"),goal},approachPlan,"แอปส่ง S1 ไปให้ IK และ LeRobot"),
+ step(2,4000,"LeRobot ทำ IK แล้วขยับแขน","แปลง waypoint เป็น joint targets แต่ละจังหวะ แล้วส่งให้มอเตอร์ ตัวอย่างด้านล่างแสดงเพียงหนึ่งจังหวะ",miss?"miss":"pick","T1 / EXECUTE / S1",{segment_id:"S1",...bounds,waypoints:approach,gripper_at_end:"close"},motors("S1"),"เมื่อช่วงจบ แอปเก็บภาพใหม่แล้วเรียก Astra; motion_done ยังไม่แปลว่าจับติด")
+ ];
+ if(miss)list.push(
+ step(1,5000,"Astra เห็นว่าจับไม่ติด → Retry","แขนไปถึงแล้ว แต่ภาพใหม่ยังเห็นลูกบาศก์อยู่บนโต๊ะ Astra จึงส่ง waypoint ชุดใหม่สำหรับช่วงเดิม","retry_plan","T1 / VERIFY_GRASP → RETRY / #2",snap("verify_grasp",1,"O2","motion_done"),retryPlan,"decision: retry → แอปรัน S1b แทนการไปช่วงวาง"),
+ step(2,4200,"LeRobot ขยับตาม waypoint ชุดใหม่","คำนวณมุมข้อต่อใหม่จากทางเข้าที่ Astra ปรับ แล้วลองจับอีกครั้ง","retry_move","T1 / EXECUTE / S1b",{segment_id:"S1b",...bounds,waypoints:revised,gripper_at_end:"close"},motors("S1b",7),"เมื่อช่วงจบ แอปเก็บภาพชุด O3 แล้วเรียก Astra อีกครั้ง")
+ );
+ list.push(
+ step(1,4800,"Astra เห็นว่าจับติด → ไปช่วงวาง","จากภาพใหม่ Astra เห็นว่าลูกบาศก์ยกตามกริปเปอร์ จึงออก waypoint สำหรับย้ายไปถาด","held","T1 / VERIFY_GRASP → PLAN_PLACE",snap("verify_grasp",miss?2:1,heldObs,"motion_done"),placePlan,"decision: next → แอปส่ง S2 ไปให้ LeRobot"),
+ step(2,4300,"LeRobot ย้ายของไปวางในถาด","IK คำนวณมุมข้อต่อสำหรับช่วงยก → ไปเหนือถาด → วาง","place","T1 / EXECUTE / S2",{segment_id:"S2",...bounds,waypoints:transfer,gripper_at_end:"open"},{...motors("S2",-12),"gripper.pos":86},"จบ S2 → เก็บภาพใหม่จากกล้องบนและข้อมือ"),
+ step(1,3900,"Astra ตรวจว่าของอยู่ในถาด","ภาพล่าสุดแสดงว่าชิ้นสีฟ้าอยู่ในถาดแล้ว","verify","T1 / VERIFY_PLACE",snap("verify_place",1,placedObs,"motion_done"),{task_id:"T1",decision:"done",evidence:"blue_cube_in_tray"},"decision: done → แอปปิดงานแล้วส่งผลให้ GPT‑Live"),
+ step(0,3300,"GPT‑Live บอกผล","“วางลูกบาศก์สีฟ้าลงในถาดแล้วค่ะ”","done","T1 / DONE",{task_id:"T1",status:"success",result:"blue_cube_in_tray"},{speaks:"วางลูกบาศก์สีฟ้าลงในถาดแล้วค่ะ"},"จบรอบ และกลับไปรับคำสั่งใหม่")
+ );
+ return list;
+}
+let miss=false,steps=sequence(miss);
+const $=id=>document.getElementById(id),roles=document.querySelectorAll(".role"),reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let i=0,t=0,running=!reduced,last=performance.now();
+const mix=(a,b,p)=>a+(b-a)*p;
+function poly(points,p){let q=Math.max(0,Math.min(.999999,p))*(points.length-1),a=points[Math.floor(q)],b=points[Math.floor(q)+1],u=q%1;u=u*u*(3-2*u);return [mix(a[0],b[0],u),mix(a[1],b[1],u)];}
+function render(){
+ const v=steps[i].visual,p=Math.min(1,t/steps[i].ms); let x=230,y=143,cx=341,cy=202,closed=false;
+ if(v==="pick"||v==="miss"){[x,y]=poly(v==="miss"?[[230,143],[325,135],[325,191],[325,155]]:[[230,143],[341,131],[341,191],[341,171]],p);closed=p>.69;if(v==="pick"&&closed)cy=y+11;}
+ if(v==="retry_plan"){x=325;y=155;closed=true;}
+ if(v==="retry_move"){[x,y]=poly([[325,155],[352,121],[341,191],[341,171]],p);closed=p>.68;if(closed)cy=y+11;}
+ if(v==="held"){x=341;y=171;cy=182;closed=true;}
+ if(v==="place"){[x,y]=poly([[341,171],[341,118],[494,128],[494,191]],p/.88);[cx,cy]=[x,y+11];closed=p<.88;if(!closed){cx=494;cy=202;y=mix(191,149,(p-.88)/.12);}}
+ if(v==="verify"||v==="done"){x=494;y=149;cx=494;cy=202;}
+ const mx=mix(141,x,.42),my=Math.max(48,Math.min(137,y-89));const d="M141 203L"+mx+" "+my+"L"+x+" "+(y-7);
+ $("arm").setAttribute("d",d);$("arm-shadow").setAttribute("d",d);$("joint").setAttribute("cx",mx);$("joint").setAttribute("cy",my);
+ $("grip").setAttribute("transform","translate("+x+" "+y+")");const g=closed?11:17;
+ $("claw").setAttribute("d","M0 -9V3M"+(-g)+" 3H"+g+"M"+(-g)+" 3V16M"+g+" 3V16");
+ $("cube").setAttribute("x",cx-11);$("cube").setAttribute("y",cy);
+ $("bar").style.width=((i+p)/steps.length*100)+"%";
+}
+function ui(){
+ const {role,head,detail,visual,state,input,output,trigger}=steps[i];
+ roles.forEach((el,j)=>{el.classList.toggle("on",j===role);el.setAttribute("aria-pressed",String(j===role));});
+ $("count").textContent=String(i+1).padStart(2,"0")+" / "+String(steps.length).padStart(2,"0");$("headline").textContent=head;$("detail").textContent=detail;
+ $("run-state").textContent=state;$("io-in").textContent=JSON.stringify(input,null,2);$("io-out").textContent=JSON.stringify(output,null,2);$("trigger").textContent=trigger;
+ $("approach").classList.toggle("on",["plan","pick","miss"].includes(visual));$("transfer").classList.toggle("on",["held","place"].includes(visual));
+ $("retry-path").classList.toggle("on",["retry_plan","retry_move"].includes(visual));
+ $("feed").classList.toggle("on",role===1);$("prev").disabled=i===0;$("next").disabled=i===steps.length-1;
+ $("normal").setAttribute("aria-pressed",String(!miss));$("retry").setAttribute("aria-pressed",String(miss));
+ $("play").textContent=running?"หยุดชั่วคราว":"เล่น";render();
+}
+function select(n){i=n;running=false;t=steps[n].role===2?steps[n].ms:0;ui();}
+function changeMode(m){miss=m;steps=sequence(m);select(m?3:0);}
+roles.forEach(el=>el.addEventListener("click",()=>select(Number(el.dataset.step))));
+$("normal").onclick=()=>changeMode(false);$("retry").onclick=()=>changeMode(true);
+$("play").onclick=()=>{if(!running&&i===steps.length-1&&t>=steps[i].ms){i=0;t=0;}else if(!running&&t>=steps[i].ms){t=0;}running=!running;ui();};
+$("replay").onclick=()=>{i=0;t=0;running=true;ui();};
+$("prev").onclick=()=>select(Math.max(0,i-1));$("next").onclick=()=>select(Math.min(steps.length-1,i+1));
+function tick(now){let dt=Math.min(now-last,100);last=now;if(running){t+=dt;if(t>=steps[i].ms){if(i<steps.length-1){t=0;i++;ui();}else{t=steps[i].ms;running=false;ui();}}render();}requestAnimationFrame(tick);}
+ui();requestAnimationFrame(tick);
+</script></body></html>
